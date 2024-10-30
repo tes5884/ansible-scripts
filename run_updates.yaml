@@ -1,6 +1,7 @@
 ---
 - name: Run updates on linux servers
-  hosts: do
+  hosts: all
+  become: yes
   tasks:
     - name: Update package lists (Debian/Ubuntu)
       ansible.builtin.apt:
