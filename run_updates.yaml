@@ -1,6 +1,6 @@
 ---
 - name: Run updates on linux servers
-  hosts: all
+  hosts: {{ target_hosts }}
   become: yes
   tasks:
     - name: Update package lists (Debian/Ubuntu)
