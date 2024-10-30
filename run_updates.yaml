@@ -2,6 +2,7 @@
 - name: Run updates on linux servers
   hosts: "{{ target_hosts }}"
   become: yes
+  become_user: root
   tasks:
     - name: Update package lists (Debian/Ubuntu)
       ansible.builtin.apt:
