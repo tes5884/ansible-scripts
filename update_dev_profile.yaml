@@ -1,5 +1,5 @@
 - name: Update nextdns.conf with MAC address profile
-  hosts: opnsense_firewalls
+  hosts: "{{ target_hosts }}"
   become: yes
   vars:
     mac_address: "{{ mac_address }}"  # Replace with the desired MAC address or pass as an extra var
