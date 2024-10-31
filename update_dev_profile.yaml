@@ -12,9 +12,9 @@
       failed_when: profile_check.rc > 1  # Only fail if rc > 1 (indicates an actual error)
       changed_when: no  # Prevents this check from marking the task as changed
 
-    - name: Print message if profile already exists
-      ansible.builtin.debug:
-        msg: "Profile {{ profile_id }} for MAC address {{ mac_address }} already exists in nextdns.conf. No changes made."
+    - name: Set fact if profile already exists
+      ansible.builtin.set_fact:
+        profile_status: "Profile for MAC address {{ mac_address }} already exists with profile ID {{ profile_id }}."
       when: profile_check.rc == 0
 
     - name: Update or add the MAC address profile in nextdns.conf
@@ -27,8 +27,19 @@
       register: profile_update
       when: profile_check.rc != 0
 
+    - name: Set fact if profile was added or updated
+      ansible.builtin.set_fact:
+        profile_status: >-
+          Profile for MAC address {{ mac_address }} was {{ 'added' if profile_update.changed else 'updated' }} 
+          with profile ID {{ profile_id }}.
+      when: profile_check.rc != 0
+
     - name: Restart NextDNS to apply changes if profile was added or updated
       ansible.builtin.service:
         name: nextdns
         state: restarted
       when: profile_update.changed
+
+    - name: Summary of actions
+      ansible.builtin.debug:
+        msg: "{{ profile_status }}"
