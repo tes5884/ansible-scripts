@@ -1,0 +1,37 @@
+- name: Update nextdns.conf with MAC address profile
+  hosts: opnsense_firewalls
+  become: yes
+  vars:
+    mac_address: "{{ mac_address }}"  # Replace with the desired MAC address or pass as an extra var
+    profile_id: "{{ profile_id }}"      # The profile to assign to the MAC address
+
+  tasks:
+    - name: Check if MAC address profile exists in nextdns.conf
+      ansible.builtin.command: "grep '^profile {{ mac_address }}=' /usr/local/etc/nextdns.conf"
+      register: profile_check
+      ignore_errors: yes
+
+    - name: Update or add the MAC address profile in nextdns.conf
+      ansible.builtin.lineinfile:
+        path: /usr/local/etc/nextdns.conf
+        regexp: '^profile {{ mac_address }}='
+        line: "profile {{ mac_address }}={{ profile_id }}"
+        state: present
+        create: yes
+      register: profile_update
+      when: profile_check.rc != 0 or profile_check.stdout != "profile {{ mac_address }}={{ profile_id }}"
+
+    - name: Print message if profile was added
+      ansible.builtin.debug:
+        msg: "Profile {{ profile_id }} for MAC address {{ mac_address }} was added to nextdns.conf."
+      when: profile_check.rc != 0
+
+    - name: Print message if profile was updated
+      ansible.builtin.debug:
+        msg: "Profile for MAC address {{ mac_address }} was updated to {{ profile_id }} in nextdns.conf."
+      when: profile_check.rc == 0 and profile_check.stdout != "profile {{ mac_address }}={{ profile_id }}"
+
+    - name: Restart NextDNS to apply changes
+      ansible.builtin.service:
+        name: nextdns
+        state: restarted
