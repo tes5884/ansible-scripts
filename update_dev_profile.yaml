@@ -29,7 +29,7 @@
     - name: Print message if profile was updated
       ansible.builtin.debug:
         msg: "Profile for MAC address {{ mac_address }} was updated to {{ profile_id }} in nextdns.conf."
-      when: profile_check.rc == 0 and profile_check.stdout != "profile {{ mac_address }}={{ profile_id }}"
+      when: profile_check.rc == 0 and profile_check.stdout != "profile " + mac_address + "=" + profile_id
 
     - name: Restart NextDNS to apply changes
       ansible.builtin.service:
