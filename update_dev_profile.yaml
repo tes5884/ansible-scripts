@@ -7,9 +7,14 @@
 
   tasks:
     - name: Check if MAC address profile exists in nextdns.conf
-      ansible.builtin.command: "grep '^profile {{ mac_address }}=' /usr/local/etc/nextdns.conf"
+      ansible.builtin.command: "grep '^profile {{ mac_address }}={{ profile_id }}' /usr/local/etc/nextdns.conf"
       register: profile_check
       ignore_errors: yes
+
+    - name: Print message if profile already exists
+      ansible.builtin.debug:
+        msg: "Profile {{ profile_id }} for MAC address {{ mac_address }} already exists in nextdns.conf. No changes made."
+      when: profile_check.rc == 0
 
     - name: Update or add the MAC address profile in nextdns.conf
       ansible.builtin.lineinfile:
@@ -19,19 +24,10 @@
         state: present
         create: yes
       register: profile_update
-      when: profile_check.rc != 0 or profile_check.stdout != "profile " + mac_address + "=" + profile_id
-
-    - name: Print message if profile was added
-      ansible.builtin.debug:
-        msg: "Profile {{ profile_id }} for MAC address {{ mac_address }} was added to nextdns.conf."
       when: profile_check.rc != 0
 
-    - name: Print message if profile was updated
-      ansible.builtin.debug:
-        msg: "Profile for MAC address {{ mac_address }} was updated to {{ profile_id }} in nextdns.conf."
-      when: profile_check.rc == 0 and profile_check.stdout != "profile " + mac_address + "=" + profile_id
-
-    - name: Restart NextDNS to apply changes
+    - name: Restart NextDNS to apply changes if profile was added or updated
       ansible.builtin.service:
         name: nextdns
         state: restarted
+      when: profile_update.changed
