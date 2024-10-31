@@ -9,7 +9,8 @@
     - name: Check if MAC address profile exists in nextdns.conf
       ansible.builtin.command: "grep '^profile {{ mac_address }}={{ profile_id }}' /usr/local/etc/nextdns.conf"
       register: profile_check
-      ignore_errors: yes
+      failed_when: profile_check.rc > 1  # Only fail if rc > 1 (indicates an actual error)
+      changed_when: no  # Prevents this check from marking the task as changed
 
     - name: Print message if profile already exists
       ansible.builtin.debug:
