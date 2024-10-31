@@ -19,7 +19,7 @@
         state: present
         create: yes
       register: profile_update
-      when: profile_check.rc != 0 or profile_check.stdout != "profile {{ mac_address }}={{ profile_id }}"
+      when: profile_check.rc != 0 or profile_check.stdout != "profile " + mac_address + "=" + profile_id
 
     - name: Print message if profile was added
       ansible.builtin.debug:
